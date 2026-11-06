@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>QueueSense – Hospital Queue Management</title>
+<style>
+:root{--bg:#f2f7fc;--card:#fff;--ink:#16263a;--mut:#5b6c80;--line:#d3deeb;--pri:#1565c0;--pri2:#0d47a1;--tl:#00897b;--bad:#c62828;--warn:#b26a00;--ok:#2e7d32}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Segoe UI",system-ui,-apple-system,Roboto,sans-serif}
+.strip{height:5px;background:linear-gradient(90deg,#ff9933 33%,#e8eef5 33% 66%,#138808 66%)}
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:10px 20px;padding:10px 24px;background:#fff;border-bottom:1px solid var(--line)}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:19px;color:var(--pri2)}
+.logo i{background:var(--pri);color:#fff;width:34px;height:34px;border-radius:8px;display:grid;place-items:center;font-style:normal;font-size:20px}
+.logo small{display:block;font-weight:400;font-size:12px;color:var(--mut);line-height:1.1}
+#nav{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-left:auto}
+#nav a{text-decoration:none;color:var(--ink);padding:7px 14px;border-radius:20px;font-size:15px}
+#nav a.on{background:var(--pri);color:#fff}
+.who{color:var(--mut);font-size:14px;margin-left:8px}
+main{max-width:1150px;margin:0 auto;padding:22px}
+h1{font-size:clamp(28px,5vw,44px);line-height:1.12;margin:0 0 14px}h2{margin:0 0 6px;font-size:24px}h3{margin:0 0 10px;font-size:18px}
+.mut{color:var(--mut)}
+.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:24px;align-items:center;min-height:70vh}
+@media(max-width:800px){.hero{grid-template-columns:1fr}}
+.intro{background:linear-gradient(135deg,#1976d2,#0d8f86);color:#fff;border-radius:20px;padding:36px}
+.intro p{font-size:18px;opacity:.95}.intro li{margin:8px 0;font-size:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px;box-shadow:0 1px 3px rgba(20,50,90,.06)}
+.seg{display:flex;background:#e8f0f9;border-radius:10px;padding:4px;margin-bottom:14px}
+.seg button{flex:1;border:0;background:transparent;border-radius:8px;padding:8px}
+.seg button.on{background:#fff;color:var(--pri2);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+label{display:block;margin:10px 0;font-size:14px;color:var(--mut)}
+input,select{font:inherit;width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);margin-top:4px}
+label.ck{display:flex;gap:8px;align-items:flex-start;color:var(--ink);font-size:15px}label.ck input{width:auto;margin-top:5px}
+button{font:inherit;cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--ink);padding:8px 14px;border-radius:8px}
+button.pri{background:var(--pri);color:#fff;border-color:var(--pri);font-weight:600;width:100%;padding:10px}
+button.sm{padding:4px 10px;font-size:14px;width:auto}button.warn{color:var(--bad)}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid #ff9933;outline-offset:2px}
+.note{background:#e9f2fd;border-left:4px solid var(--pri);padding:10px 14px;border-radius:8px;margin:0 0 16px;font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}.grid .card{margin:0}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.st{background:#fff;border:1px solid var(--line);border-top:4px solid var(--pri);border-radius:12px;padding:12px 14px;font-size:14px;color:var(--mut)}
+.st .v{font-size:30px;font-weight:700;color:var(--ink);line-height:1.1}
+.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.tk{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-left-width:5px;border-radius:8px;margin-bottom:6px;flex-wrap:wrap;font-size:14px}
+.tk b{font:700 17px ui-monospace,Menlo,Consolas,monospace;min-width:54px}.tk select{width:auto;padding:3px 6px;margin:0 0 0 auto;font-size:14px}
+.tk.p0{border-left-color:var(--bad)}.tk.p1{border-left-color:#f59e0b}.tk.p2{border-left-color:var(--line)}.tk.srv{background:#e9f7f5}
+.stub{background:#fff;border:2px dashed #9db8d6;border-radius:18px;padding:24px;max-width:460px;margin:10px auto;text-align:center}
+.stub .num{font:700 66px/1.1 ui-monospace,Menlo,Consolas,monospace;letter-spacing:2px;color:var(--pri)}
+.stub .big{font-size:22px;font-weight:600;margin:8px 0}
+.tag{font-size:12px;border:1px solid currentColor;border-radius:20px;padding:1px 8px;white-space:nowrap}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:8px 8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}th{background:#eef4fb}
+.bars{display:flex;align-items:flex-end;gap:5px;height:150px;margin:22px 0 28px}
+.bars div{flex:1;background:var(--pri);border-radius:4px 4px 0 0;position:relative;min-width:12px}.bars div.pk{background:#ff9933}
+.bars i{position:absolute;top:-16px;left:0;right:0;text-align:center;font:11px/1 sans-serif;font-style:normal}
+.bars b{position:absolute;bottom:-18px;left:0;right:0;text-align:center;font:10px sans-serif;color:var(--mut);font-weight:400}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:20px;background:#14306b;color:#fff;padding:10px 16px;border-radius:10px;display:none;z-index:5}
+ul.rec{padding-left:20px;margin:6px 0}
+/* theme */
+:root{--bg:#eef5fc}
+body{background:radial-gradient(900px 500px at 100% -10%,#d6ebff 0,transparent 60%),radial-gradient(700px 500px at -10% 30%,#d9f3ee 0,transparent 60%),var(--bg);background-attachment:fixed}
+.top{position:sticky;top:0;z-index:4;background:rgba(255,255,255,.9);backdrop-filter:blur(8px);box-shadow:0 2px 12px rgba(20,60,110,.08)}
+.logo i{background:linear-gradient(135deg,#1976d2,#00897b);box-shadow:0 3px 8px rgba(21,101,192,.35)}
+#nav a{font-weight:600;transition:background .15s}#nav a:hover{background:#e3effb}
+#nav a.on{background:linear-gradient(135deg,#1565c0,#1e88e5);box-shadow:0 3px 8px rgba(21,101,192,.3)}
+h2{font-size:28px;letter-spacing:-.3px}
+.intro{position:relative;overflow:hidden;padding:44px;background:radial-gradient(circle at 88% 12%,rgba(255,255,255,.25),transparent 42%),linear-gradient(135deg,#1565c0 0%,#1e88e5 55%,#00a896 100%);box-shadow:0 18px 40px rgba(21,101,192,.28)}
+.intro::after{content:"✚";position:absolute;right:-30px;bottom:-60px;font-size:260px;line-height:1;color:rgba(255,255,255,.12)}
+.intro h1{font-weight:800;letter-spacing:-1px}
+.intro ul{padding:0;margin:22px 0 0}
+.intro li{list-style:none;position:relative;padding:6px 0 6px 38px;font-weight:500}
+.intro li::before{content:"✓";position:absolute;left:0;top:5px;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.22);display:grid;place-items:center;font-size:14px}
+.card{border-radius:16px;box-shadow:0 6px 20px rgba(20,60,110,.08);transition:box-shadow .2s,transform .2s}
+.grid .card:hover{box-shadow:0 10px 28px rgba(20,60,110,.14);transform:translateY(-2px)}
+button.pri{background:linear-gradient(135deg,#1565c0,#1e88e5);box-shadow:0 4px 12px rgba(21,101,192,.3)}
+button.pri:hover{filter:brightness(1.08)}
+.stats .st{border-radius:14px;border-top:1px solid var(--line);border-left:5px solid var(--pri);background:linear-gradient(#fff,#f6faff);box-shadow:0 4px 14px rgba(20,60,110,.07)}
+.stats .st:nth-child(2){border-left-color:#f59e0b}.stats .st:nth-child(3){border-left-color:#00897b}
+.stats .st:nth-child(4){border-left-color:#2e7d32}.stats .st:nth-child(5){border-left-color:#c62828}.stats .st:nth-child(6){border-left-color:#6a1b9a}
+.st .v{font-size:34px;font-weight:800}
+.bars div{background:linear-gradient(#42a5f5,#1565c0)}.bars div.pk{background:linear-gradient(#ffb74d,#ff9933)}
+table tr:nth-child(even) td{background:#f8fbff}table tr:hover td{background:#eaf3fd}
+.tk{border-radius:10px;background:#fff;box-shadow:0 1px 4px rgba(20,60,110,.06)}
+.stub{position:relative;background:linear-gradient(#fff,#f1f8ff);box-shadow:0 12px 30px rgba(21,101,192,.15);border-radius:22px}
+.stub::before,.stub::after{content:"";position:absolute;top:48%;width:28px;height:28px;border-radius:50%;background:#eef5fc;border:2px dashed #9db8d6}
+.stub::before{left:-16px}.stub::after{right:-16px}
+.stub .num{font-size:78px;text-shadow:0 2px 0 #cfe3fa}
+.note{background:linear-gradient(90deg,#e3f0fd,#f2f8ff)}
+
+/* Added QueueSense information pages */
+.info-section{margin:28px 0;padding:28px;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 6px 20px rgba(20,60,110,.06)}
+.info-section h2{color:var(--pri2)}
+.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:18px}
+.info-item{padding:18px;border-left:4px solid var(--pri);background:#f5f9ff;border-radius:8px}
+.info-item h3{color:var(--pri2)}
+.info-section a,.info-footer a{color:var(--pri2);font-weight:600}
+.terms-content{max-width:900px;margin:20px auto}
+.terms-content h3{margin-top:22px;color:var(--pri2)}
+.info-footer{display:flex;gap:18px;flex-wrap:wrap;margin:24px 0;padding:16px 4px;border-top:1px solid var(--line)}
+.info-footer a{text-decoration:none}
+</style></head>
+<body>
+<div class="strip"></div>
+<div class="top"><div class="logo"><i>✚</i><div>QueueSense<small>Hospital OPD queue management</small></div></div><div id="nav"></div></div>
+<main id="app"></main><div id="toast" role="status"></div>
+<script>
+const $=s=>document.querySelector(s);
+const DP={opd:{n:'General OPD',p:'O',a:8,c:2},ped:{n:'Pediatrics',p:'P',a:10,c:1},lab:{n:'Laboratory',p:'L',a:5,c:1},ph:{n:'Pharmacy',p:'M',a:4,c:1}};
+const PR=['Emergency','Urgent','Routine'],RS=['Fever or cold','Pain','Injury','Follow-up visit','Report collection','Medicine pickup','Other'];
+const ST={waiting:'Waiting',called:'In service',done:'Completed',cancelled:'Cancelled',noshow:'No-show',expired:'Expired'};
+
+let S,U=null,ar='p',am='in',recD='';
+const API_BASE='';
+async function api(path,options={}){
+  const opts={credentials:'include',...options,headers:{'Content-Type':'application/json',...(options.headers||{})}};
+  const response=await fetch(API_BASE+path,opts);
+  let data={};try{data=await response.json()}catch(e){}
+  if(!response.ok||data.status==='error'||data.success===false)throw new Error(data.message||data.error||`Request failed (${response.status})`);
+  return data;
+}
+function payloadOf(data,key){
+  if(data&&data[key])return data[key];
+  if(data&&data.data&&data.data[key])return data.data[key];
+  if(data&&data.data)return data.data;
+  return data||{};
+}
+function dateTimeMs(date,time){
+  if(!date)return Date.now();
+  const value=time?`${date}T${String(time).slice(0,8)}`:date;
+  const parsed=new Date(value).getTime();
+  return Number.isFinite(parsed)?parsed:Date.now();
+}
+function fromBackendToken(x){
+  const dept=String(x.department||x.sv||'opd').toLowerCase();
+  const priority=String(x.priority||'Routine').toLowerCase();
+  const status=String(x.status||'Waiting').toLowerCase();
+  const statusMap={waiting:'waiting',serving:'called','in service':'called',completed:'done',cancelled:'cancelled','no-show':'noshow',noshow:'noshow',expired:'expired'};
+  const created=dateTimeMs(x.booking_date||x.d,x.created_at||x.booking_time);
+  const started=x.service_started_at?new Date(x.service_started_at).getTime():null;
+  const completed=x.completed_at?new Date(x.completed_at).getTime():null;
+  const number=x.token_number||'';
+  return {
+    id:Number(x.token_id||x.id),tk:x.token_display||x.token||`${x.token_prefix||({opd:'O',ped:'P',lab:'L',ph:'M'}[dept]||'Q')}${String(number).padStart(3,'0')}`,
+    sv:dept,pr:priority==='emergency'?0:priority==='urgent'?1:2,
+    rs:x.reason||'General visit',st:statusMap[status]||'waiting',ct:created,
+    d:x.booking_date||x.d||today(),uid:String(x.mobile_number||x.patient_mobile||x.patient_id||''),
+    pn:x.patient_name||x.full_name||'Patient',pa:Number(x.patient_age||x.age||0),
+    pp:x.patient_mobile||x.mobile_number||'',cn:x.counter_name||x.counter_id||1,
+    cl:started||null,dn:completed||null,backend:true
+  };
+}
+async function refreshBackendData(showError=false){
+  if(!U)return;
+  try{
+    const data=U.role==='s'?await api('/api/staff/queue'):await api('/api/my-tokens');
+    const list=Array.isArray(data.tokens)?data.tokens:(Array.isArray(data.data)?data.data:[]);
+    const remote=list.map(fromBackendToken);
+    const localSamples=(S.t||[]).filter(t=>t.sm);
+    S.t=U.role==='s'?localSamples.concat(remote):remote;
+    S.n=Math.max(S.n||0,...remote.map(t=>t.id||0));
+    save();
+    return true;
+  }catch(err){if(showError)toast(err.message);return false}
+}
+
+const E=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const H=s=>{let h=5381;for(const c of s)h=(h*33)^c.charCodeAt(0);return(h>>>0).toString(36)};
+const dk=ms=>{const d=new Date(ms);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const today=()=>dk(Date.now()),avg=x=>x.length?x.reduce((p,q)=>p+q,0)/x.length:0,mask=p=>p?'XXXXXX'+String(p).slice(-4):'–';
+const fresh=()=>({u:[{id:'staff01',role:'s',name:'Front Desk',pin:H('hosp@123')}],t:[],seq:{},c:{opd:2,ped:1,lab:1,ph:1},avg:{opd:8,ped:10,lab:5,ph:4},demo:true,n:0});
+function load(){try{S=JSON.parse(localStorage.getItem('qh1'))}catch(e){}if(!S)S=fresh();const d=today();S.t.forEach(t=>{if((t.st=='waiting'||t.st=='called')&&t.d<d)t.st='expired'});let s=null;try{s=sessionStorage.getItem('qhs')}catch(e){}U=S.u.find(x=>x.id==s)||null}
+function save(){try{localStorage.setItem('qh1',JSON.stringify(S))}catch(e){}}
+function toast(x){const t=$('#toast');t.textContent=x;t.style.display='block';clearTimeout(toast.h);toast.h=setTimeout(()=>t.style.display='none',2800)}
+const mm=(t,ms)=>ms/6e4*(t.sm?1:S.demo?60:1),live=t=>t&&(t.st=='waiting'||t.st=='called');
+const act=k=>S.t.filter(t=>t.d==today()&&t.sv==k&&t.st=='called');
+function wait(k){const n=Date.now();return S.t.filter(t=>t.d==today()&&t.sv==k&&t.st=='waiting').map(t=>({t,s:t.pr*20-mm(t,n-t.ct)})).sort((a,b)=>a.s-b.s).map(x=>x.t)}
+function est(t){const i=wait(t.sv).indexOf(t),a=S.avg[t.sv],c=S.c[t.sv],f=Math.max(0,c-act(t.sv).length),e=i<f?0:((i-f)/c+.5)*a;return e<1?null:[Math.max(1,Math.round(e*.75)),Math.round(e*1.3)+1]}
+function add(k,pr,rs,p){const d=today(),q=d+k;S.seq[q]=(S.seq[q]||0)+1;S.t.push({id:++S.n,tk:DP[k].p+String(S.seq[q]).padStart(3,'0'),sv:k,pr,rs,st:'waiting',ct:Date.now(),d,uid:p.uid||'',pn:p.name,pa:p.age,pp:p.phone||''});save();render()}
+/* auth */
+function setAr(v){ar=v;render()}function setAm(v){am=v;render()}
+async function auth(){
+  load();
+  const id=$('#a1').value.trim(),pw=$('#a2').value;
+  try{
+    let data,u;
+    if(ar==='s'){
+      if(am==='reg')return toast('For this demo, use the hospital staff account created by the admin.');
+      if(!id||!pw)return toast('Enter your staff ID and password.');
+      data=await api('/api/staff/login',{method:'POST',body:JSON.stringify({username:id,password:pw})});
+      const x=payloadOf(data,'staff');
+      u={id:String(x.username||x.staff_id||id),role:'s',name:x.full_name||x.name||x.username||id};
+    }else{
+      const ph=id.replace(/\D/g,'');
+      if(ph.length!==10)return toast('Enter a 10-digit mobile number.');
+      if(am==='reg'){
+        const nm=$('#a3').value.trim(),ag=Number($('#a4').value);
+        if(!/^\d{4,6}$/.test(pw))return toast('PIN must be 4 to 6 digits.');
+        if(!nm||!(ag>0&&ag<120))return toast('Enter your name and a valid age.');
+        data=await api('/api/register',{method:'POST',body:JSON.stringify({
+          full_name:nm,mobile_number:ph,pin:pw,age:ag,gender:$('#a5').value
+        })});
+        data=await api('/api/login',{method:'POST',body:JSON.stringify({mobile_number:ph,pin:pw})});
+      }else{
+        if(!/^\d{4,6}$/.test(pw))return toast('PIN must be 4 to 6 digits.');
+        data=await api('/api/login',{method:'POST',body:JSON.stringify({mobile_number:ph,pin:pw})});
+      }
+      const x=payloadOf(data,'patient');
+      u={id:ph,role:'p',name:x.full_name||x.name||$('#a3')?.value||'Patient',
+         age:Number(x.age||$('#a4')?.value||0),sex:x.gender||x.sex||'',
+         patient_id:x.patient_id||x.id};
+    }
+    S.u=S.u.filter(x=>!(x.id===u.id&&x.role===u.role));S.u.push(u);save();
+    login(u);
+    await refreshBackendData(true);
+    render();
+    toast('Signed in successfully.');
+  }catch(err){toast(err.message)}
+}
+function login(u){U=u;try{sessionStorage.setItem('qhs',u.id)}catch(e){}location.hash=u.role==='s'?'desk':'book';render()}
+async function logout(){
+  try{await api(U&&U.role==='s'?'/api/staff/logout':'/api/logout',{method:'POST',body:'{}'})}catch(e){}
+  try{sessionStorage.removeItem('qhs')}catch(e){}
+  U=null;location.hash='home';render();
+}
+/* queue actions */
+const OK={waiting:['called','cancelled'],called:['done','noshow','cancelled']};
+async function mv(id,to){
+  load();const t=S.t.find(x=>x.id==id);
+  if(!t)return toast('Token not found.');
+  if(U&&U.role==='s'){
+    const statusMap={done:'Completed',cancelled:'Cancelled',noshow:'No-show'};
+    if(!statusMap[to])return toast('This action is not available.');
+    try{
+      await api(`/api/staff/token/${id}/status`,{method:'PATCH',body:JSON.stringify({status:statusMap[to]})});
+      await refreshBackendData();render();toast(`Token ${t.tk} updated.`);
+    }catch(err){toast(err.message)}
+    return;
+  }
+  if(to==='cancelled')return toast('Please ask the front desk to cancel your token.');
+}
+async function callNext(k){
+  try{
+    const data=await api('/api/staff/call-next',{method:'POST',body:JSON.stringify({department:k})});
+    await refreshBackendData();render();
+    const x=payloadOf(data,'token');toast(x.token_display?`${x.token_display} called.`:'Next patient called.');
+  }catch(err){toast(err.message)}
+}
+function setPr(id,v){load();const t=S.t.find(x=>x.id==id);if(t&&t.st=='waiting'){t.pr=+v;save()}render()}
+function setC(k,d){load();S.c[k]=Math.min(4,Math.max(1,S.c[k]+d));save();render()}
+function setDemo(v){load();S.demo=v;save()}
+async function book(){
+  load();
+  const department=$('#sv').value,priority=$('#ur').checked?'Urgent':'Routine',reason=$('#rs').value;
+  try{
+    const data=await api('/api/book',{method:'POST',body:JSON.stringify({department,priority,reason})});
+    await refreshBackendData();
+    render();
+    const x=payloadOf(data,'token');
+    toast(x.token_display?`Your token is ${x.token_display}`:'Token booked successfully.');
+  }catch(err){toast(err.message)}
+}
+function walkin(){load();const n=$('#wn').value.trim(),a=+$('#wa').value;if(!n||!(a>0&&a<120))return toast('Enter the patient name and age.');add($('#wsv').value,+$('#wpr').value,$('#wrs').value,{name:n,age:a})}
+function reset(){if(confirm('Delete ALL data, including patient accounts and history?')){S=fresh();save();logout()}}
+/* simulation (minutes) */
+function sim(a,c,pol){const f=Array(c).fill(0),p=a.map(x=>({...x})).sort((x,y)=>x.ct-y.ct),q=[],o=[];
+while(p.length||q.length){const k=f.indexOf(Math.min(...f));let tm=f[k];while(p.length&&p[0].ct<=tm)q.push(p.shift());
+if(!q.length){f[k]=p[0].ct;continue}
+q.sort(pol=='fifo'?(x,y)=>x.ct-y.ct:(x,y)=>(x.pr*20-(tm-x.ct))-(y.pr*20-(tm-y.ct)));
+const x=q.shift();x.cl=tm;x.dn=tm+x.sv;f[k]=x.dn;o.push(x)}return o}
+function sample(){load();S.t=S.t.filter(t=>!t.sm);const B=[8,10,13,18,19,14,11,12,8],F={opd:1,ped:.5,lab:.55,ph:.45},NM=['Asha','Ravi','Meena','Kiran','Suresh','Latha','Imran','Divya','Arjun','Nisha','Farah','Gopal'],R=n=>Math.floor(Math.random()*n);
+for(let o=14;o>=1;o--){const dt=new Date();dt.setDate(dt.getDate()-o);dt.setHours(9,0,0,0);const base=dt.getTime(),d=dk(base),wk=dt.getDay()==0?.5:1;
+for(const k in DP){const a=[];B.forEach((r,h)=>{const n=Math.round(r*F[k]*wk*(.8+.4*Math.random()));for(let i=0;i<n;i++){const u=Math.random();a.push({ct:h*60+Math.random()*60,sv:DP[k].a*(.5+Math.random()),pr:u<.04?0:u<.2?1:2})}});
+sim(a,DP[k].c,'smart').forEach(x=>{S.seq[d+k]=(S.seq[d+k]||0)+1;S.t.push({id:++S.n,tk:DP[k].p+String(S.seq[d+k]).padStart(3,'0'),sv:k,pr:x.pr,rs:RS[R(RS.length)],st:Math.random()<.06?'noshow':'done',ct:base+x.ct*6e4,cl:base+x.cl*6e4,dn:base+x.dn*6e4,sm:1,d,uid:'',pn:NM[R(NM.length)]+' (sample)',pa:3+R(77),pp:String(1000000000+R(899999999))})})}}
+save();render();toast('14 days of synthetic sample data loaded.')}
+/* helpers for views */
+function bars(v,l,hi){const mx=Math.max(1,...v);return`<div class="bars">${v.map((x,i)=>`<div class="${i==hi?'pk':''}" style="height:${Math.max(2,x/mx*100)}%"><i>${x}</i><b>${l[i]}</b></div>`).join('')}</div>`}
+function stub(t){const i=wait(t.sv).indexOf(t);let h=`<div class="stub"><div class="mut">${DP[t.sv].n} · ${E(t.pn)}</div><div class="num">${t.tk}</div>`;
+if(t.st=='called')h+=`<div class="big" style="color:var(--ok)">Please go to Counter ${t.cn}</div>`;
+else{const e=est(t);h+=`<div class="big">${i==0?'You are next':i+' ahead of you'}</div><div>Estimated wait: <b>${e?'about '+e[0]+'–'+e[1]+' min':'under a minute'}</b></div>${t.pr<2?`<div class="tag" style="display:inline-block;margin-top:8px;color:var(--warn)">Marked ${PR[t.pr].toLowerCase()} – staff will confirm</div>`:''}`}
+return h+`<p class="mut" style="font-size:13px">This is an estimate, not a guaranteed time. Staff may move urgent cases forward.</p><button class="warn" onclick="mv(${t.id},'cancelled')">Cancel my token</button></div>`}
+const opt=(o,sel)=>o.map(([v,n])=>`<option value="${v}"${v==sel?' selected':''}>${n}</option>`).join('');
+/* views */
+function vHome(){const p=ar=='p',reg=am=='reg';return`
+<div class="hero">
+<section class="intro">
+<h1>Know your turn.<br>Skip the crowded corridor.</h1>
+<p>Get a digital token for OPD, pediatrics, lab or pharmacy and follow your place in the queue from anywhere in the hospital.</p>
+<ul><li>Live waiting-time estimates</li><li>Urgent cases are reviewed by staff first</li><li>Your visit history, always available</li></ul>
+</section>
+<section class="card">
+<div class="seg"><button class="${p?'on':''}" onclick="setAr('p')">Patient</button><button class="${p?'':'on'}" onclick="setAr('s')">Hospital staff</button></div>
+<div class="seg"><button class="${reg?'':'on'}" onclick="setAm('in')">Sign in</button><button class="${reg?'on':''}" onclick="setAm('reg')">Create account</button></div>
+<label>${p?'Mobile number':'Staff ID'}<input id="a1" ${p?'inputmode="numeric" maxlength="10" placeholder="10-digit number"':'placeholder="staff01"'} autocomplete="username"></label>
+<label>${p?'PIN (4–6 digits)':'Password'}<input id="a2" type="password" autocomplete="current-password"></label>
+${reg&&!p?`<label>Full name<input id="a3"></label><label>Hospital access code<input id="a6" type="password" placeholder="Given by the hospital admin"></label><p class="mut" style="font-size:13px">Only authorised hospital staff can create an account. Choose your own staff ID and password above.</p>`:''}
+${reg&&p?`<label>Full name<input id="a3"></label><label>Age<input id="a4" type="number" min="0" max="119"></label><label>Gender<select id="a5"><option>Female</option><option>Male</option><option>Other</option></select></label><p class="mut" style="font-size:13px">We keep only your name, age and mobile number. Staff see the number partly hidden.</p>`:''}
+<button class="pri" onclick="auth()">${reg?'Create account':'Sign in'}</button>
+${p?'':'<p class="mut" style="font-size:13px">Staff demo login: <b>admin</b> / <b>Admin@12345</b></p>'}
+<p class="mut" style="font-size:12px">QueueSense connects to the hospital demo server. Use the registered patient account or the staff credentials supplied by the admin.</p>
+</section>
+</div>
+
+<section class="info-section">
+<h2>Why QueueSense?</h2>
+<p>Hospital outpatient departments can become crowded, especially during busy hours. Patients may have to wait without knowing how many people are ahead of them or when their turn might arrive. QueueSense is designed to make this process more organised and transparent.</p>
+<div class="info-grid">
+<div class="info-item"><h3>The problem</h3><p>Traditional manual queues can lead to overcrowding, uncertainty about waiting times and difficulties for staff managing multiple departments.</p></div>
+<div class="info-item"><h3>Our purpose</h3><p>We aim to provide a digital queue management platform that helps patients follow their tokens and helps staff monitor patient flow.</p></div>
+<div class="info-item"><h3>Our approach</h3><p>Patients can obtain tokens, view queue status and check estimated waiting times for supported hospital services.</p></div>
+</div>
+</section>
+
+<section class="info-section">
+<h2>How QueueSense helps</h2>
+<div class="info-grid">
+<div class="info-item"><h3>For patients</h3><ul><li>Get a digital queue token.</li><li>Check your position in the queue.</li><li>View estimated waiting time.</li><li>Access your visit history.</li></ul></div>
+<div class="info-item"><h3>For hospital staff</h3><ul><li>Monitor department queues.</li><li>Manage patient tokens.</li><li>Record service completion.</li><li>View queue statistics and records.</li></ul></div>
+</div>
+</section>
+
+<section class="info-section">
+<h2>Our objective</h2>
+<p>QueueSense aims to support better organisation of hospital queues, improve visibility of patient flow and help reduce confusion in waiting areas. It is designed as a support tool for patients and hospital staff, not as a replacement for medical professionals or clinical decisions.</p>
+<p class="mut">QueueSense is currently a demonstration project. Waiting-time estimates are approximate and actual service times may vary.</p>
+</section>
+<div class="info-footer"><a href="#terms">Terms &amp; Conditions</a><a href="#terms">Privacy and usage information</a></div>
+`}
+
+function vTerms(){return`
+<div class="terms-content">
+<h2>Terms &amp; Conditions</h2>
+<p class="mut">Please read these conditions before using QueueSense.</p>
+<div class="card">
+<h3>1. Purpose of the platform</h3>
+<p>QueueSense is a hospital queue management demonstration platform designed to support digital token generation, queue tracking and basic queue administration.</p>
+<h3>2. Waiting-time estimates</h3>
+<p>All waiting times are estimates only. Actual waiting times may change due to patient volume, medical emergencies, staff availability and service delays. QueueSense does not guarantee a particular consultation time.</p>
+<h3>3. Medical emergencies</h3>
+<p>QueueSense is not an emergency medical service. Patients requiring immediate medical attention must contact hospital staff directly. Emergency and urgent cases are handled according to staff assessment and hospital procedures.</p>
+<h3>4. Token management</h3>
+<p>Patients are responsible for monitoring their token status and following instructions from hospital staff. Tokens may be cancelled, marked as no-show or otherwise updated according to applicable queue procedures.</p>
+<h3>5. Patient information</h3>
+<p>Users should provide accurate information when registering or requesting a token. Patient information should be handled only for legitimate queue-management purposes and protected from unauthorised access.</p>
+<h3>6. Staff responsibilities</h3>
+<p>Hospital staff are responsible for managing queues, reviewing urgent requests and making all clinical and operational decisions. The platform does not replace professional judgement.</p>
+<h3>7. Service availability</h3>
+<p>The demonstration platform may experience errors, interruptions or data loss. Users should not rely on it as the only source of hospital appointment or queue information.</p>
+<h3>8. Demonstration project disclaimer</h3>
+<p>This version of QueueSense is an academic demonstration project. It is not a certified hospital information system and should not be used to make real medical decisions or process real patient information without appropriate security, testing, approvals and deployment controls.</p>
+<h3>9. Changes to these conditions</h3>
+<p>These conditions may be updated as the platform develops. Users should review the latest version before using the platform.</p>
+<button class="pri" onclick="location.hash='home'">Back to home</button>
+</div>
+</div>
+`}
+
+function vBook(){const t=S.t.filter(x=>x.d==today()&&!x.sm).slice(-1)[0];if(live(t))return stub(t);
+return`<h2>Hello, ${E(U.name)}</h2><p class="mut">Pick where you need to go. Your name, age and mobile number are shared only with the front desk.</p>${t?`<div class="note">Your last token ${t.tk} was ${ST[t.st].toLowerCase()}. You can take a new one.</div>`:''}
+<div class="card" style="max-width:480px"><label>Department<select id="sv">${opt(Object.keys(DP).map(k=>[k,DP[k].n+' – '+wait(k).length+' waiting']))}</select></label><label>Reason for visit<select id="rs">${opt(RS.map(x=>[x,x]))}</select></label>
+<label class="ck"><input type="checkbox" id="ur"><span>I need urgent attention. A staff member will check before the order changes.</span></label><button class="pri" onclick="book()">Get my token</button></div>`}
+function vVisits(){const a=S.t.filter(t=>!t.sm).sort((x,y)=>y.ct-x.ct);return`<h2>My visits</h2><p class="mut">All your tokens, newest first.</p><div class="card tw">${a.length?`<table><tr><th>Date</th><th>Time</th><th>Token</th><th>Department</th><th>Reason</th><th>Status</th></tr>${a.map(t=>`<tr><td>${t.d}</td><td>${new Date(t.ct).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</td><td><b>${t.tk}</b></td><td>${DP[t.sv].n}</td><td>${E(t.rs)}</td><td>${ST[t.st]}</td></tr>`).join('')}</table>`:'<p>No visits yet. Take a token from “My token”.</p>'}</div>`}
+function vDesk(){return`<h2>Queue desk</h2><div class="note">The suggested order uses urgency plus waiting time, so routine patients are not left waiting forever. Staff always make the final call. This tool supports clinical staff and never replaces clinical decisions. Patient details are for queue handling only.</div><div class="grid">`+Object.keys(DP).map(k=>{const w=wait(k),a=act(k);
+return`<section class="card"><h3>${DP[k].n} <span class="mut" style="font-weight:400">${w.length} waiting</span></h3><div class="row"><span class="mut">Counters</span><button class="sm" aria-label="Fewer counters" onclick="setC('${k}',-1)">−</button><b>${S.c[k]}</b><button class="sm" aria-label="More counters" onclick="setC('${k}',1)">+</button><button class="sm" style="margin-left:auto;background:var(--pri);color:#fff" onclick="callNext('${k}')">Call suggested next</button></div>
+${a.map(t=>`<div class="tk srv p${t.pr}"><b>${t.tk}</b><span>${E(t.pn)}, ${t.pa} · Counter ${t.cn}</span><button class="sm" style="margin-left:auto" onclick="mv(${t.id},'done')">Done</button><button class="sm" onclick="mv(${t.id},'noshow')">No-show</button></div>`).join('')}
+${w.map((t,i)=>`<div class="tk p${t.pr}"><b>${t.tk}</b><span>${E(t.pn)}, ${t.pa}<br><span class="mut">${E(t.rs)} · #${i+1}</span></span><select aria-label="Priority for ${t.tk}" onchange="setPr(${t.id},this.value)">${opt(PR.map((p,j)=>[j,p]),t.pr)}</select><button class="sm" onclick="mv(${t.id},'called')">Call</button><button class="sm" aria-label="Cancel ${t.tk}" onclick="mv(${t.id},'cancelled')">✕</button></div>`).join('')||'<p class="mut">The queue is empty.</p>'}</section>`}).join('')+`</div>
+<div class="card" style="margin-top:16px"><h3>Add a walk-in patient</h3><div class="row"><input id="wn" placeholder="Patient name" style="flex:2;min-width:140px"><input id="wa" type="number" placeholder="Age" style="flex:1;min-width:70px"></div><div class="row"><select id="wsv" style="flex:1">${opt(Object.keys(DP).map(k=>[k,DP[k].n]))}</select><select id="wrs" style="flex:1">${opt(RS.map(x=>[x,x]))}</select><select id="wpr" style="flex:1">${opt(PR.map((p,j)=>[j,p]),2)}</select><button onclick="walkin()">Add to queue</button></div>
+<label class="ck"><input type="checkbox" ${S.demo?'checked':''} onchange="setDemo(this.checked)" style="width:auto"><span>Demo clock: 1 second counts as 1 minute for live tokens</span></label></div>`}
+function vDash(){const d=today(),T=S.t.filter(t=>t.d==d),n=k=>T.filter(t=>t.st==k).length,srv=T.filter(t=>t.cl);
+const hr=Array(24).fill(0);T.forEach(t=>hr[new Date(t.ct).getHours()]++);const f=hr.findIndex(x),lo=Math.min(8,f<0?8:f),hi=Math.max(18,23-[...hr].reverse().findIndex(x=>x));
+const hh=[],hl=[];for(let h=lo;h<=hi;h++){hh.push(hr[h]);hl.push(h)}
+const dd=[],dl=[];for(let i=13;i>=0;i--){const x=new Date();x.setDate(x.getDate()-i);const k=dk(x.getTime());dd.push(S.t.filter(t=>t.d==k).length);dl.push(k.slice(8)+'/'+k.slice(5,7))}
+const rows=Object.keys(DP).map(k=>{const a=S.t.filter(t=>t.sv==k&&t.cl);return{k,n:a.length,w:avg(a.map(t=>mm(t,t.cl-t.ct))),s:avg(a.filter(t=>t.dn).map(t=>mm(t,t.dn-t.cl))),tot:S.t.filter(t=>t.sv==k).length,ns:S.t.filter(t=>t.sv==k&&t.st=='noshow').length}});
+const all=Array(24).fill(0);S.t.forEach(t=>all[new Date(t.ct).getHours()]++);const mx=Math.max(...all),pk=all.indexOf(mx),bn=[...rows].sort((a,b)=>b.w-a.w)[0];
+const rec=[];if(mx>0){rec.push(`Busiest hour overall is ${pk}:00–${pk+1}:00 (${mx} tokens). Plan breaks and extra staff around it.`);if(bn.w>10)rec.push(`${DP[bn.k].n} is the bottleneck, with an average wait of ${bn.w.toFixed(0)} min. Add a counter there between ${pk-1}:00 and ${pk+2}:00.`);rows.forEach(r=>{if(r.tot&&r.ns/r.tot>.05)rec.push(`${DP[r.k].n}: ${Math.round(r.ns/r.tot*100)}% no-shows. Send a “you are next” alert and shorten the grace period.`)})}
+const sd=[...new Set(S.t.filter(t=>t.sm).map(t=>t.d))].sort().pop();let ef='';
+if(sd){ef=`<div class="card"><h3>Efficiency estimate <span class="tag" style="color:var(--warn)">simulated, sample day ${sd}</span></h3><div class="tw"><table><tr><th>Department</th><th>First-come-first-served</th><th>Smart order</th><th>Urgent cases: before → after</th><th>With one more counter</th></tr>`+Object.keys(DP).map(k=>{const b=S.t.filter(t=>t.sm&&t.d==sd&&t.sv==k&&t.dn),o=Math.min(...b.map(t=>t.ct)),a=b.map(t=>({ct:(t.ct-o)/6e4,sv:(t.dn-t.cl)/6e4,pr:t.pr}));if(a.length<10)return'';
+const x=sim(a,S.c[k],'fifo'),y=sim(a,S.c[k],'smart'),z=sim(a,S.c[k]+1,'smart'),w=q=>avg(q.map(r=>r.cl-r.ct)),u=q=>avg(q.filter(r=>r.pr<2).map(r=>r.cl-r.ct));
+return`<tr><td>${DP[k].n}</td><td>${w(x).toFixed(1)} min</td><td>${w(y).toFixed(1)} min</td><td>${u(x).toFixed(1)} → ${u(y).toFixed(1)} min</td><td>${w(z).toFixed(1)} min (${Math.round((1-w(z)/Math.max(.01,w(x)))*100)}% lower)</td></tr>`}).join('')+`</table></div><p class="mut" style="font-size:13px;margin:8px 0 0">Average waits when the sample day’s arrivals are replayed under each rule. These are simulated estimates from synthetic data, not measured gains.</p></div>`}
+return`<h2>Dashboard <span class="mut" style="font-size:16px;font-weight:400">· ${d}</span></h2><p class="mut">Updates automatically. A new day starts at midnight and earlier days move into Records.</p>
+<div class="stats"><div class="st"><div class="v">${T.length}</div>Tokens issued today</div><div class="st"><div class="v">${n('waiting')}</div>Waiting now</div><div class="st"><div class="v">${n('called')}</div>In service</div><div class="st"><div class="v">${n('done')}</div>Completed</div><div class="st"><div class="v">${n('cancelled')+n('noshow')+n('expired')}</div>Cancelled or missed</div><div class="st"><div class="v">${avg(srv.map(t=>mm(t,t.cl-t.ct))).toFixed(0)}<small> min</small></div>Average wait today</div></div>
+<div class="grid"><div class="card"><h3>Tokens issued today, by hour</h3>${bars(hh,hl,-1)}</div><div class="card"><h3>Tokens issued, last 14 days</h3>${bars(dd,dl,13)}</div></div>
+<div class="grid" style="margin-top:16px"><div class="card"><h3>Waits by department (all days)</h3><div class="tw"><table><tr><th>Department</th><th>Served</th><th>Avg wait</th><th>Avg service</th></tr>${rows.map(r=>`<tr><td>${DP[r.k].n}${r.n&&r==bn&&r.w>10?' <span class="tag" style="color:var(--warn)">bottleneck</span>':''}</td><td>${r.n}</td><td>${r.w.toFixed(1)} min</td><td>${r.s.toFixed(1)} min</td></tr>`).join('')}</table></div></div>
+<div class="card"><h3>Recommendations</h3>${rec.length?`<ul class="rec">${rec.map(x=>`<li>${x}</li>`).join('')}</ul>`:'<p class="mut">Serve some tokens or load sample data to see recommendations.</p>'}</div></div>${ef}
+<div class="card"><div class="row" style="margin:0"><button onclick="sample()">Load 14 days of sample data</button><button class="warn" onclick="reset()">Reset everything</button></div></div>`}
+function vRec(){const d=recD||today(),T=S.t.filter(t=>t.d==d).sort((a,b)=>a.ct-b.ct),srv=T.filter(t=>t.cl),hr=Array(24).fill(0);T.forEach(t=>hr[new Date(t.ct).getHours()]++);const mx=Math.max(...hr);
+return`<h2>Records by date</h2><p class="mut">Choose a date to see every token issued that day, with patient details for staff use.</p>
+<div class="card"><div class="row" style="margin:0"><label style="margin:0">Date<input type="date" id="rd" value="${d}" max="${today()}" onchange="recD=this.value;render()" style="width:auto"></label><button style="margin-left:auto" onclick="csv('${d}')">Download CSV</button></div></div>
+<div class="stats"><div class="st"><div class="v">${T.length}</div>Tokens issued</div><div class="st"><div class="v">${T.filter(t=>t.st=='done').length}</div>Completed</div><div class="st"><div class="v">${T.filter(t=>t.st=='noshow'||t.st=='cancelled'||t.st=='expired').length}</div>Cancelled or missed</div><div class="st"><div class="v">${avg(srv.map(t=>mm(t,t.cl-t.ct))).toFixed(0)}<small> min</small></div>Average wait</div><div class="st"><div class="v">${mx?hr.indexOf(mx)+':00':'–'}</div>Peak hour</div></div>
+<div class="card tw">${T.length?`<table><tr><th>Time</th><th>Token</th><th>Patient</th><th>Age</th><th>Mobile</th><th>Department</th><th>Reason</th><th>Priority</th><th>Status</th><th>Wait</th></tr>${T.map(t=>`<tr><td>${new Date(t.ct).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</td><td><b>${t.tk}</b></td><td>${E(t.pn)}</td><td>${t.pa}</td><td>${mask(t.pp)}</td><td>${DP[t.sv].n}</td><td>${E(t.rs)}</td><td>${PR[t.pr]}</td><td>${ST[t.st]}</td><td>${t.cl?mm(t,t.cl-t.ct).toFixed(0)+' min':'–'}</td></tr>`).join('')}</table>`:'<p>No tokens were issued on this date.</p>'}</div>`}
+function csv(d){const r=[['Time','Token','Patient','Age','Mobile','Department','Reason','Priority','Status']].concat(S.t.filter(t=>t.d==d).map(t=>[new Date(t.ct).toLocaleTimeString(),t.tk,t.pn,t.pa,mask(t.pp),DP[t.sv].n,t.rs,PR[t.pr],ST[t.st]]));
+const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([r.map(x=>x.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n')],{type:'text/csv'}));a.download='tokens-'+d+'.csv';a.click()}
+function render(){load();let v=location.hash.slice(1);const P=['book','visits'],M=['desk','dash','records'];
+if(!U&&!['home','terms'].includes(v))v='home';
+else if(U&&U.role=='s'){if(!M.includes(v))v='desk'}
+else if(U&&U.role=='p'){if(!P.includes(v))v='book'}
+const L=U?(U.role=='s'?[['desk','Queue desk'],['dash','Dashboard'],['records','Records']]:[['book','My token'],['visits','My visits']]):[];
+$('#nav').innerHTML=L.map(x=>`<a href="#${x[0]}" class="${x[0]==v?'on':''}">${x[1]}</a>`).join('')+(U?`<span class="who">${E(U.name)}</span><button class="sm" onclick="logout()">Sign out</button>`:'');
+$('#app').innerHTML=({home:vHome,terms:vTerms,book:vBook,visits:vVisits,desk:vDesk,dash:vDash,records:vRec})[v]()}
+async function bootstrap(){
+  load();
+  const cached=U;
+  try{
+    let data,u;
+    if(cached&&cached.role==='s'){
+      data=await api('/api/staff/me');const x=payloadOf(data,'staff');
+      u={id:String(x.username||x.staff_id||cached.id),role:'s',name:x.full_name||x.name||cached.name};
+    }else{
+      data=await api('/api/me');const x=payloadOf(data,'patient');
+      u={id:String(x.mobile_number||x.phone||cached?.id||''),role:'p',name:x.full_name||x.name||cached?.name||'Patient',
+         age:Number(x.age||cached?.age||0),sex:x.gender||x.sex||'',patient_id:x.patient_id||x.id};
+    }
+    if(!u.id)throw new Error('Session unavailable');
+    U=u;S.u=S.u.filter(x=>!(x.id===u.id&&x.role===u.role));S.u.push(u);save();
+    await refreshBackendData();
+  }catch(e){U=null;try{sessionStorage.removeItem('qhs')}catch(x){}}
+  render();
+}
+render();bootstrap();addEventListener('hashchange',render);addEventListener('storage',e=>{if(e.key=='qh1')render()});
+setInterval(async()=>{
+  if(!U)return;
+  const active=document.activeElement&&['SELECT','INPUT'].includes(document.activeElement.tagName);
+  await refreshBackendData();
+  if(!active)render();
+},7000);
+</script></body></html>
